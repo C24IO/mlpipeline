@@ -35,6 +35,7 @@ prefix = '/opt/ml/'
 input_path = prefix + 'input/data'
 output_path = os.path.join(prefix, 'output')
 model_path = os.path.join(prefix, 'model')
+export_path = os.path.join(prefix, 'model/export/')
 param_path = os.path.join(prefix, 'input/config/hyperparameters.json')
 
 _CSV_COLUMNS = [
@@ -209,7 +210,8 @@ def main(unused_argv):
 
       for key in sorted(results):
         print('%s: %s' % (key, results[key]))
-    builder = tf.saved_model.builder.SavedModelBuilder(model_path)
+    builder = tf.saved_model.builder.SavedModelBuilder(export_path)
+    builder.save()
   except Exception as e:
     # Write out an error file. This will be returned as the failureReason in the
     # DescribeTrainingJob result.
