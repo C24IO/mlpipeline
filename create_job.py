@@ -38,7 +38,7 @@ response = client.create_training_job(
     ResourceConfig={
         "VolumeSizeInGB": 1,
         "InstanceCount": 1,
-        "InstanceType": "ml.p3.8xlarge"
+        "InstanceType": "ml.p2.8xlarge"
     },
     StoppingCondition={
         "MaxRuntimeInSeconds": 86400
