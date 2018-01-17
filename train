@@ -209,7 +209,7 @@ def main(unused_argv):
 
       for key in sorted(results):
         print('%s: %s' % (key, results[key]))
-
+    builder = tf.saved_model.builder.SavedModelBuilder(model_path)
   except Exception as e:
     # Write out an error file. This will be returned as the failureReason in the
     # DescribeTrainingJob result.
