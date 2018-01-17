@@ -197,12 +197,12 @@ def main(unused_argv):
     model = build_estimator(model_path, trainingParams.get('model_type', 'wide_deep'))
 
     # Train and evaluate the model every `FLAGS.epochs_per_eval` epochs.
-    for n in range(trainingParams.get('train_epochs', 40) // trainingParams.get('epochs_per_eval', 2)):
+    for n in range(int(trainingParams.get('train_epochs', 40)) // int(trainingParams.get('epochs_per_eval', 2))):
       model.train(input_fn=lambda: input_fn(
-          trainingParams.get('train_data','/tmp/census_data/adult.data'), trainingParams.get('epochs_per_eval', 2), True, trainingParams.get('batch_size', 40)))
+          trainingParams.get('train_data','/tmp/census_data/adult.data'), int(trainingParams.get('epochs_per_eval', 2)), True, int(trainingParams.get('batch_size', 40))))
 
       results = model.evaluate(input_fn=lambda: input_fn(
-          trainingParams.get('test_data','/tmp/census_data/adult.test'), 2, False, trainingParams.get('batch_size', 40)))
+          int(trainingParams.get('test_data','/tmp/census_data/adult.test')), 2, False, int(trainingParams.get('batch_size', 40))))
 
       # Display evaluation metrics
       print('Results at epoch', (n + 1) * trainingParams.get('epochs_per_eval', 2))
