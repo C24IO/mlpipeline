@@ -202,7 +202,7 @@ def main(unused_argv):
           trainingParams.get('train_data','/tmp/census_data/adult.data'), int(trainingParams.get('epochs_per_eval', 2)), True, int(trainingParams.get('batch_size', 40))))
 
       results = model.evaluate(input_fn=lambda: input_fn(
-          int(trainingParams.get('test_data','/tmp/census_data/adult.test')), 2, False, int(trainingParams.get('batch_size', 40))))
+          trainingParams.get('test_data','/tmp/census_data/adult.test'), 2, False, int(trainingParams.get('batch_size', 40))))
 
       # Display evaluation metrics
       print('Results at epoch', (n + 1) * trainingParams.get('epochs_per_eval', 2))
