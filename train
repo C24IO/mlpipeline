@@ -25,7 +25,7 @@ import shutil
 import sys
 import traceback
 import tensorflow as tf
-
+import json
 parser = argparse.ArgumentParser()
 
 # These are the paths to where SageMaker mounts interesting things in your container.
