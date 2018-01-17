@@ -205,7 +205,7 @@ def main(unused_argv):
           trainingParams.get('test_data','/tmp/census_data/adult.test'), 2, False, int(trainingParams.get('batch_size', 40))))
 
       # Display evaluation metrics
-      print('Results at epoch', (n + 1) * trainingParams.get('epochs_per_eval', 2))
+      print('Results at epoch', (n + 1) * int(trainingParams.get('epochs_per_eval', 2)))
       print('-' * 60)
 
       for key in sorted(results):
