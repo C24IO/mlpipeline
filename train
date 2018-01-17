@@ -26,6 +26,15 @@ import sys
 
 import tensorflow as tf
 
+# These are the paths to where SageMaker mounts interesting things in your container.
+
+prefix = '/opt/ml/'
+
+input_path = prefix + 'input/data'
+output_path = os.path.join(prefix, 'output')
+model_path = os.path.join(prefix, 'model')
+param_path = os.path.join(prefix, 'input/config/hyperparameters.json')
+
 _CSV_COLUMNS = [
     'age', 'workclass', 'fnlwgt', 'education', 'education_num',
     'marital_status', 'occupation', 'relationship', 'race', 'gender',
@@ -35,38 +44,6 @@ _CSV_COLUMNS = [
 
 _CSV_COLUMN_DEFAULTS = [[0], [''], [0], [''], [0], [''], [''], [''], [''], [''],
                         [0], [0], [0], [''], ['']]
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument(
-    '--test_name', type=str, default='',
-    help='Name of the test run')
-
-parser.add_argument(
-    '--model_dir', type=str, default='/tmp/census_model',
-    help='Base directory for the model.')
-
-parser.add_argument(
-    '--model_type', type=str, default='wide_deep',
-    help="Valid model types: {'wide', 'deep', 'wide_deep'}.")
-
-parser.add_argument(
-    '--train_epochs', type=int, default=40, help='Number of training epochs.')
-
-parser.add_argument(
-    '--epochs_per_eval', type=int, default=2,
-    help='The number of training epochs to run between evaluations.')
-
-parser.add_argument(
-    '--batch_size', type=int, default=40, help='Number of examples per batch.')
-
-parser.add_argument(
-    '--train_data', type=str, default='/tmp/census_data/adult.data',
-    help='Path to the training data.')
-
-parser.add_argument(
-    '--test_data', type=str, default='/tmp/census_data/adult.test',
-    help='Path to the test data.')
 
 _NUM_EXAMPLES = {
     'train': 32561,
@@ -206,33 +183,42 @@ def input_fn(data_file, num_epochs, shuffle, batch_size):
 
 
 def main(unused_argv):
-  if FLAGS.test_name:
-    new_directory = FLAGS.model_dir + '/' + FLAGS.test_name
-    print(new_directory)
-    if not os.path.exists(new_directory):
-        os.makedirs(new_directory)
-        FLAGS.model_dir = new_directory
-  # Clean up the model directory if present
-  shutil.rmtree(FLAGS.model_dir, ignore_errors=True)
-  model = build_estimator(FLAGS.model_dir, FLAGS.model_type)
+  
+  try:
+    # Read in any hyperparameters that the user passed with the training job
+    with open(param_path, 'r') as tc:
+      trainingParams = json.load(tc)
 
-  # Train and evaluate the model every `FLAGS.epochs_per_eval` epochs.
-  for n in range(FLAGS.train_epochs // FLAGS.epochs_per_eval):
-    model.train(input_fn=lambda: input_fn(
-        FLAGS.train_data, FLAGS.epochs_per_eval, True, FLAGS.batch_size))
+    #trainingParams.get('test_name', '')
 
-    results = model.evaluate(input_fn=lambda: input_fn(
-        FLAGS.test_data, 1, False, FLAGS.batch_size))
+    model = build_estimator(model_path, trainingParams.get('model_type', 'wide_deep'))
 
-    # Display evaluation metrics
-    print('Results at epoch', (n + 1) * FLAGS.epochs_per_eval)
-    print('-' * 60)
+    # Train and evaluate the model every `FLAGS.epochs_per_eval` epochs.
+    for n in range(trainingParams.get('train_epochs', 40) // trainingParams.get('epochs_per_eval', 2)):
+      model.train(input_fn=lambda: input_fn(
+          trainingParams.get('train_data','/tmp/census_data/adult.data'), trainingParams.get('epochs_per_eval', 2), True, trainingParams.get('batch_size', 40)))
 
-    for key in sorted(results):
-      print('%s: %s' % (key, results[key]))
+      results = model.evaluate(input_fn=lambda: input_fn(
+          trainingParams.get('test_data','/tmp/census_data/adult.test'), 2, False, trainingParams.get('batch_size', 40)))
 
+      # Display evaluation metrics
+      print('Results at epoch', (n + 1) * trainingParams.get('epochs_per_eval', 2))
+      print('-' * 60)
+
+      for key in sorted(results):
+        print('%s: %s' % (key, results[key]))
+
+  except Exception as e:
+    # Write out an error file. This will be returned as the failureReason in the
+    # DescribeTrainingJob result.
+    trc = traceback.format_exc()
+    with open(os.path.join(output_path, 'failure'), 'w') as s:
+      s.write('Exception during training: ' + str(e) + '\n' + trc)
+    # Printing this causes the exception to be in the training job logs, as well.
+    print('Exception during training: ' + str(e) + '\n' + trc, file=sys.stderr)
+    # A non-zero exit code causes the training job to be marked as Failed.
+    sys.exit(255)
 
 if __name__ == '__main__':
   tf.logging.set_verbosity(tf.logging.INFO)
-  FLAGS, unparsed = parser.parse_known_args()
-  tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+  tf.app.run(main=main)
