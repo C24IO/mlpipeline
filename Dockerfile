@@ -4,5 +4,5 @@ RUN apt-get update
 RUN apt-get -y install git
 RUN rm train
 RUN rm -rf ./mlpipeline
-RUN git clone https://github.com/frc9/mlpipeline.git && cp ./mlpipeline/train ./
+RUN git clone https://github.com/frc9/mlpipeline.git && cp ./mlpipeline/train ./ && cp ./mlpipeline/p_train ./
 ENV PATH=$PATH:.

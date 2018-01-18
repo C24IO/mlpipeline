@@ -1,0 +1,8 @@
+{
+  "test_data":"/opt/ml/input/data/adult.test",
+  "train_data":"/opt/ml/input/data/adult.data",
+  "model_type": "wide",
+  "train_epochs": 4,
+  "epochs_per_eval": 2,
+  "batch_size":40
+}
