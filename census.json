@@ -1,0 +1,15 @@
+{
+  "pipeline": {
+    "name": "census"
+  },
+  "transform": {
+    "cmd": [ "./p_train"],
+    "image": "frc9/pachyderm"
+  },
+  "input": {
+    "atom": {
+      "repo": "census",
+      "glob": "/*"
+    }
+  }
+}

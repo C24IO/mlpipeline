@@ -1,0 +1,8 @@
+{
+  "test_data":"/pfs/census/adult.test",
+  "train_data":"/pfs/census/adult.data",
+  "model_type": "wide",
+  "train_epochs": 4,
+  "epochs_per_eval": 2,
+  "batch_size":40
+}
